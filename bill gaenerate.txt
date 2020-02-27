@@ -1,0 +1,51 @@
+declare
+m_num customer."Meter_Num"%type;
+m_typ customer."M_Type"%type;
+P_read customer."Pre_eading"%type;
+c_read customer."Cur_Reading"%type;
+c_typ customer."Cus_Type"%type;
+L_bilpa customer."Last_Bill_payment"%type;
+netamount number;
+unitused number;
+rate number;
+amount number;
+surcharge number;
+excise number;
+net number;
+countid number;
+begin
+select count("Meter_Num") into net from customer;
+for i in 1..net loop
+select "Meter_Num","M_Type","Pre_eading","Cur_Reading","Cus_Type","Last_Bill_payment" into m_num,m_typ,P_read,c_read,c_typ,L_bilpa from customer where "Meter_Num"=100+i;
+netamount:=0;
+unitused:=0;
+rate:=0;
+amount:=0;
+surcharge:=0;
+excise:=0;
+unitused:=c_read-P_read;
+if c_typ='A' then
+amount:=1*unitused;
+rate:=1;
+elsif c_typ='I' then
+amount:=1.25*unitused;
+rate:=1.25;
+elsif c_typ='C' then
+amount:=1.50*unitused;
+rate:=1.50;
+elsif c_typ='R' then
+amount:=1.30*unitused;
+rate:=1.30;
+end if;
+if m_typ='T' then
+surcharge:=(10*amount)/100;
+elsif m_typ='S' then
+surcharge:=(5*amount)/100;
+end if;
+excise:=(30*(amount+surcharge))/100;
+netamount:=amount+surcharge+excise;
+dbms_output.put_line(netamount);
+insert into bill values(m_num,unitused,rate,amount,surcharge,excise,netamount);
+end loop;
+end;
+/
